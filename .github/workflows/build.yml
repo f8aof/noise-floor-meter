@@ -1,0 +1,208 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ main ]
+    tags:     [ 'v*' ]
+  workflow_dispatch:          # Lancement manuel depuis GitHub
+
+jobs:
+  build-windows:
+    runs-on: windows-2022     # Machine Windows réelle dans le cloud GitHub
+
+    steps:
+    # ── 1. Récupérer le code ──
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # ── 2. Python 3.11 ──
+    - name: Installer Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        architecture: "x64"
+
+    # ── 3. Dépendances Python ──
+    - name: Installer dépendances Python
+      run: |
+        python -m pip install --upgrade pip
+        pip install `
+          numpy `
+          scipy `
+          sounddevice `
+          matplotlib `
+          pyinstaller
+
+    # ── 4. Générer une icône .ico si absente ──
+    - name: Générer icône NFM
+      shell: python
+      run: |
+        import struct, zlib, base64, os
+        from pathlib import Path
+
+        # Icône simple 32x32 cyan sur fond sombre générée programmatiquement
+        # (PNG 32x32 encodé en base64 minimal)
+        # On génère un .ico valide avec Pillow si disponible, sinon placeholder
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+            img = Image.new('RGBA', (64, 64), (7, 9, 11, 255))
+            d = ImageDraw.Draw(img)
+            # Cercle cyan
+            d.ellipse([6, 6, 58, 58], outline=(0, 212, 255, 255), width=3)
+            # Texte NF
+            d.text((16, 20), "NF", fill=(0, 212, 255, 255))
+            img.save('assets/nfm.ico', format='ICO', sizes=[(64,64),(32,32),(16,16)])
+            print("Icône générée avec Pillow")
+        except Exception as e:
+            # Fallback : copier une icône système Windows
+            import shutil
+            src = r"C:\Windows\System32\shell32.dll"
+            Path('assets').mkdir(exist_ok=True)
+            # Créer un fichier .ico minimal valide (1x1 pixel)
+            ico_data = bytes([
+                0,0,          # Reserved
+                1,0,          # Type: ICO
+                1,0,          # Count: 1 image
+                1,            # Width
+                1,            # Height
+                0,            # Color count
+                0,            # Reserved
+                1,0,          # Planes
+                32,0,         # Bit count
+                40,0,0,0,     # Size of image data
+                22,0,0,0,     # Offset to image data
+                # BITMAPINFOHEADER
+                40,0,0,0,     # biSize
+                1,0,0,0,      # biWidth
+                2,0,0,0,      # biHeight (x2 for mask)
+                1,0,          # biPlanes
+                32,0,         # biBitCount
+                0,0,0,0,      # biCompression
+                0,0,0,0,      # biSizeImage
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                # Pixel: cyan
+                0xff,0xd4,0,0xff,
+                # Mask
+                0,0,0,0,
+            ])
+            Path('assets').mkdir(exist_ok=True)
+            Path('assets/nfm.ico').write_bytes(ico_data)
+            print(f"Icône placeholder créée : {e}")
+
+    # ── 5. Installer Pillow pour l'icône ──
+    - name: Installer Pillow (icône)
+      run: pip install pillow
+      continue-on-error: true
+
+    # ── 6. Build PyInstaller ──
+    - name: Build exécutable avec PyInstaller
+      run: |
+        pyinstaller noise_floor_meter.spec --clean --noconfirm
+      env:
+        PYTHONOPTIMIZE: "1"
+
+    # ── 7. Vérifier le .exe ──
+    - name: Vérifier l'exécutable
+      run: |
+        dir dist\
+        if (Test-Path "dist\NoiseFloorMeter.exe") {
+          $size = (Get-Item "dist\NoiseFloorMeter.exe").Length / 1MB
+          Write-Host "NoiseFloorMeter.exe généré : $([math]::Round($size,1)) MB"
+        } else {
+          Write-Error "ERREUR : NoiseFloorMeter.exe introuvable"
+          exit 1
+        }
+      shell: pwsh
+
+    # ── 8. Installer NSIS ──
+    - name: Installer NSIS
+      run: choco install nsis --no-progress -y
+      shell: pwsh
+
+    # ── 9. Copier les fichiers pour l'installeur ──
+    - name: Préparer fichiers installeur
+      run: |
+        copy dist\NoiseFloorMeter.exe installer\
+        copy assets\nfm.ico installer\
+        if (-not (Test-Path "installer\LICENSE.txt")) {
+          Set-Content "installer\LICENSE.txt" "Noise Floor Meter v1.0.0 - F8AOF`nLogiciel libre pour usage radioamateur"
+        }
+        if (-not (Test-Path "installer\README.txt")) {
+          Set-Content "installer\README.txt" @"
+        NOISE FLOOR METER v1.0.0 — F8AOF
+        ==================================
+        Mesure du plancher de bruit RF
+        IC-706MkIIH + EMU 0202
+
+        CONNEXION :
+        Sortie AF IC-706 -> LINE IN carte son
+        PTT OFF, antenne connectée
+
+        CONTROLE CAT :
+        Lancer rigctld avant connexion :
+        rigctld -m 3021 -r COM3 -s 9600
+
+        Modeles Hamlib :
+        IC-706MkIIG = 3021
+        IC-7300     = 373
+        FT-991A     = 135
+        TS-590SG    = 229
+        "@
+        }
+      shell: pwsh
+
+    # ── 10. Compiler l'installeur NSIS ──
+    - name: Compiler installeur NSIS
+      run: |
+        cd installer
+        & "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
+        dir *.exe
+      shell: pwsh
+
+    # ── 11. Upload artifacts ──
+    - name: Upload — Exécutable seul (portable)
+      uses: actions/upload-artifact@v4
+      with:
+        name: NoiseFloorMeter-portable-${{ github.ref_name }}
+        path: dist/NoiseFloorMeter.exe
+        retention-days: 90
+
+    - name: Upload — Installeur Setup.exe
+      uses: actions/upload-artifact@v4
+      with:
+        name: NoiseFloorMeter-Setup-${{ github.ref_name }}
+        path: installer/NoiseFloorMeter_Setup.exe
+        retention-days: 90
+
+    # ── 12. Release GitHub (si tag v*) ──
+    - name: Créer Release GitHub
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      with:
+        name: "Noise Floor Meter ${{ github.ref_name }}"
+        body: |
+          ## Noise Floor Meter ${{ github.ref_name }} — F8AOF
+
+          ### Téléchargements
+          - **`NoiseFloorMeter_Setup.exe`** — Installeur complet (recommandé)
+          - **`NoiseFloorMeter.exe`** — Version portable (pas d'installation)
+
+          ### Requis
+          - Windows 10/11 x64
+          - Carte son avec entrée LINE IN (EMU 0202 recommandée)
+          - Hamlib rigctld pour le contrôle CAT (optionnel)
+
+          ### Connexion
+          ```
+          Sortie AF IC-706 → LINE IN carte son → Noise Floor Meter
+          ```
+
+          ### Contrôle CAT (IC-706MkIIG)
+          ```
+          rigctld -m 3021 -r COM3 -s 9600
+          ```
+        files: |
+          installer/NoiseFloorMeter_Setup.exe
+          dist/NoiseFloorMeter.exe
+        draft: false
+        prerelease: false
