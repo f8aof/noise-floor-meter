@@ -105,11 +105,11 @@ jobs:
     - name: Vérifier l'exécutable
       run: |
         dir dist\
-        if (Test-Path "dist\NoiseFloorMeter.exe") {
-          $size = (Get-Item "dist\NoiseFloorMeter.exe").Length / 1MB
-          Write-Host "NoiseFloorMeter.exe généré : $([math]::Round($size,1)) MB"
+        if (Test-Path "dist\NoisFloorMeter.exe") {
+          $size = (Get-Item "dist\NoisFloorMeter.exe").Length / 1MB
+          Write-Host "NoisFloorMeter.exe généré : $([math]::Round($size,1)) MB"
         } else {
-          Write-Error "ERREUR : NoiseFloorMeter.exe introuvable"
+          Write-Error "ERREUR : NoisFloorMeter.exe introuvable"
           exit 1
         }
       shell: pwsh
