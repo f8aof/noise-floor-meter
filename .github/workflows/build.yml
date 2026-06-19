@@ -171,7 +171,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: NoiseFloorMeter-Setup-${{ github.ref_name }}
-        path: installer/NoiseFloorMeter_Setup.exe
+        path: installer/NoisFloorMeter_Setup.exe
         retention-days: 90
 
     # ── 12. Release GitHub (si tag v*) ──
@@ -184,8 +184,8 @@ jobs:
           ## Noise Floor Meter ${{ github.ref_name }} — F8AOF
 
           ### Téléchargements
-          - **`NoiseFloorMeter_Setup.exe`** — Installeur complet (recommandé)
-          - **`NoiseFloorMeter.exe`** — Version portable (pas d'installation)
+          - **`NoisFloorMeter_Setup.exe`** — Installeur complet (recommandé)
+          - **`NoisFloorMeter.exe`** — Version portable (pas d'installation)
 
           ### Requis
           - Windows 10/11 x64
@@ -202,7 +202,7 @@ jobs:
           rigctld -m 3021 -r COM3 -s 9600
           ```
         files: |
-          installer/NoiseFloorMeter_Setup.exe
-          dist/NoiseFloorMeter.exe
+          installer/NoisFloorMeter_Setup.exe
+          dist/NoisFloorMeter.exe
         draft: false
         prerelease: false
