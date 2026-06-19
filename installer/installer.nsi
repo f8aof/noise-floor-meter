@@ -1,26 +1,26 @@
 ; =============================================================================
 ;  installer.nsi — NSIS Installer Script
-;  Noise Floor Meter — F8AOF
-;  Génère : NoiseFloorMeter_Setup.exe
+;  Nois Floor Meter — F8AOF
+;  Génère : NoisFloorMeter_Setup.exe
 ; =============================================================================
 
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 
 ; ── Infos application ──
-!define APP_NAME        "Noise Floor Meter"
+!define APP_NAME        "Nois Floor Meter"
 !define APP_VERSION     "1.0.0"
 !define APP_AUTHOR      "F8AOF"
-!define APP_EXE         "NoiseFloorMeter.exe"
+!define APP_EXE         "NoisFloorMeter.exe"
 !define APP_ICON        "nfm.ico"
-!define INSTALL_DIR     "$PROGRAMFILES64\NoiseFloorMeter"
-!define UNINSTALL_KEY   "Software\Microsoft\Windows\CurrentVersion\Uninstall\NoiseFloorMeter"
+!define INSTALL_DIR     "$PROGRAMFILES64\NoisFloorMeter"
+!define UNINSTALL_KEY   "Software\Microsoft\Windows\CurrentVersion\Uninstall\NoisFloorMeter"
 !define PUBLISHER       "F8AOF Amateur Radio"
-!define URL_INFO        "https://github.com/f8aof/noise-floor-meter"
+!define URL_INFO        "https://github.com/f8aof/nois-floor-meter"
 
 ; ── Métadonnées installeur ──
 Name                    "${APP_NAME} ${APP_VERSION}"
-OutFile                 "NoiseFloorMeter_Setup.exe"
+OutFile                 "NoisFloorMeter_Setup.exe"
 InstallDir              "${INSTALL_DIR}"
 InstallDirRegKey        HKLM "${UNINSTALL_KEY}" "InstallLocation"
 RequestExecutionLevel   admin
@@ -108,7 +108,7 @@ SectionEnd
 Section "Uninstall"
 
     ; Supprimer les fichiers
-    Delete "$INSTDIR\NoiseFloorMeter.exe"
+    Delete "$INSTDIR\NoisFloorMeter.exe"
     Delete "$INSTDIR\nfm.ico"
     Delete "$INSTDIR\LICENSE.txt"
     Delete "$INSTDIR\README.txt"
