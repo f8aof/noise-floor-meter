@@ -28,8 +28,8 @@ BrandingText            "${APP_NAME} ${APP_VERSION} — ${APP_AUTHOR}"
 
 ; ── Interface MUI2 ──
 !define MUI_ABORTWARNING
-!define MUI_ICON                    "assets\nfm.ico"
-!define MUI_UNICON                  "assets\nfm.ico"
+;!define MUI_ICON                    "assets\nfm.ico"
+;!define MUI_UNICON                  "assets\nfm.ico"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
 !define MUI_BGCOLOR                 "0E1117"
