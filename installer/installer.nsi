@@ -58,7 +58,7 @@ Section "Application principale" SecMain
     SetOutPath "$INSTDIR"
 
     ; Copier l'exécutable principal
-    File "dist\NoiseFloorMeter.exe"
+    File "dist\NoisFloorMeter.exe"
     File "assets\nfm.ico"
     File "LICENSE.txt"
     File "README.txt"
