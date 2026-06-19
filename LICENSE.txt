@@ -1,0 +1,5 @@
+Noise Floor Meter v1.0.0
+F8AOF Amateur Radio
+
+Logiciel libre pour usage radioamateur.
+Redistribution et utilisation autorisées avec mention de l'auteur.
