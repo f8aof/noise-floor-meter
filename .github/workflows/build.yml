@@ -122,7 +122,7 @@ jobs:
     # ── 9. Copier les fichiers pour l'installeur ──
     - name: Préparer fichiers installeur
       run: |
-        copy dist\NoiseFloorMeter.exe installer\
+        copy dist\NoisFloorMeter.exe installer\
         copy assets\nfm.ico installer\
         if (-not (Test-Path "installer\LICENSE.txt")) {
           Set-Content "installer\LICENSE.txt" "Noise Floor Meter v1.0.0 - F8AOF`nLogiciel libre pour usage radioamateur"
