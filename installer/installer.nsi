@@ -59,7 +59,7 @@ Section "Application principale" SecMain
 
     ; Copier l'exécutable principal
     File "NoisFloorMeter.exe"
-    File "assets\nfm.ico"
+    ;File "assets\nfm.ico"
     File "LICENSE.txt"
     File "README.txt"
 
